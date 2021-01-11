@@ -2,7 +2,7 @@
 
 active appearance models implemented in python
 
-Code based on https://github.com/marcovzla/pyaam
+Code based on https://github.com/marcovzla/pyaam,https://github.com/tushuguanhaoya/pyaam
 
 ## Instructions
 
