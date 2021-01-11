@@ -11,9 +11,9 @@ import numpy as np
 import git
 import glob
 
-
 # default dataset directory
-DEFAULT_DATADIR = 'data/muct'
+# DEFAULT_DATADIR = 'data/muct'
+DEFAULT_DATADIR = 'data'
 
 
 class MuctDataset(object):
@@ -58,7 +58,8 @@ class MuctDataset(object):
 
     def __init__(self, datadir=DEFAULT_DATADIR):
         self._datadir = os.path.join(os.path.dirname(os.path.realpath(__file__)), datadir)
-        self._img_fname = os.path.join(os.path.dirname(os.path.realpath(__file__)), datadir, 'jpg/%s.jpg')
+        self._git_dir = os.path.join(self._datadir, 'muct')
+        self._img_fname = os.path.join(self._git_dir, 'jpg/%s.jpg')
 
     def download(self):
         """downloads and unpacks the muct dataset"""
@@ -68,10 +69,11 @@ class MuctDataset(object):
         # create datadir
         os.makedirs(self._datadir)
         # clone muct datasets
-        git.Git(self._datadir.split('/')[0]).clone(self.URL)
+        # git.Git(self._datadir.split('/')[0]).clone(self.URL)
+        git.Git(self._datadir).clone(self.URL)
         # change directory to datadir but don't forget where you came from
         cwd = os.getcwd()
-        os.chdir(self._datadir)
+        os.chdir(self._git_dir)
         # unpack file if needed
         for filename in glob.glob('*.tar.gz'):
             with tarfile.open(filename) as tar:
@@ -81,13 +83,13 @@ class MuctDataset(object):
 
     def load(self, clean=False):
         # read landmarks file
-        fname = os.path.join(os.path.dirname(os.path.realpath(__file__)), self._datadir,\
-                              'muct-landmarks/muct76-opencv.csv')
+        fname = os.path.join(os.path.dirname(os.path.realpath(__file__)), self._git_dir, \
+                             'muct-landmarks/muct76-opencv.csv')
         data = np.loadtxt(fname, delimiter=',', skiprows=1, dtype=str)
         # separate data
-        names = np.char.array(data[:,0])
-        tags = data[:,1]
-        landmarks = data[:,2:].astype(float)
+        names = np.char.array(data[:, 0])
+        tags = data[:, 1]
+        landmarks = data[:, 2:].astype(float)
         # find flipped data
         flipped = names.startswith('ir')
         # keep data in self
