@@ -1,6 +1,3 @@
-opencv-python
-gitpython
-PyOpenGL
 PyOpenGL_accelerateautopep8==1.5.4
 backports.functools-lru-cache==1.6.1
 cycler==0.10.0
