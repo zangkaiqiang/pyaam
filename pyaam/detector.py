@@ -7,7 +7,8 @@ import numpy as np
 
 
 
-CASCADE_FILENAME = 'data/haarcascades/haarcascade_frontalface_default.xml'
+# CASCADE_FILENAME = 'data/haarcascades/haarcascade_frontalface_default.xml'
+CASCADE_FILENAME = 'data/haarcascades/haarcascade_frontalface_alt.xml'
 
 
 
@@ -105,5 +106,6 @@ def enough_bounded_points(pts, r, frac):
     bounded &= pts[::2] <= r[0]+r[2]
     bounded &= pts[1::2] >= r[1]
     bounded &= pts[1::2] <= r[1]+r[3]
+    print('enough_bounded_points:', bounded.sum() / n)
     return bounded.sum() / n >= frac
 

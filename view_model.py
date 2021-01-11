@@ -46,7 +46,7 @@ def genvals():
 
 def view_shape_model(shp_fn, scale, tranx, trany, width, height):
     img = np.empty((height, width, 3), dtype='uint8')
-    assert os.path.exists(shp_fn), f'Not exist {shp_fn}'
+    # assert os.path.exists(shp_fn), f'Not exist {shp_fn}'
     smodel = ShapeModel.load(shp_fn)
     vals = genvals()
     while True:

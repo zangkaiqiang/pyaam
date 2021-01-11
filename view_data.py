@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 from pyaam.draw import Color, draw_string, draw_points, draw_line, draw_pairs
 from pyaam.muct import MuctDataset
+import matplotlib.pyplot as plt
 
 
 
@@ -41,19 +42,21 @@ if __name__ == '__main__':
     muct = MuctDataset()
     muct.load(clean=True)
 
-    cv2.namedWindow('muct')
+    # cv2.namedWindow('muct')
     flip = points = line = pairs = False
 
     for name, tag, lmks, flipped in muct.iterdata():
         image = muct.image(name)
         image_flip = muct.image(name, flip=True)
 
-        assert isinstance(image, np.ndarray), f'image is None name : {name}'
+        assert isinstance(image, np.ndarray)
+        # f'image is None name : {name}'
         drawer = LandmarkDrawer(name, image, image_flip, lmks, flipped)
 
         while True:
             img = drawer.draw(flip, points, line, pairs) 
             cv2.imshow('muct', img)
+            # plt.imshow(img)
             # handle keyboard events
             key = cv2.waitKey()
             if key == 27:

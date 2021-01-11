@@ -23,8 +23,11 @@ def parse_args():
 
 def view_face_tracker():
     tracker = FaceTracker()
+    cap = cv2.VideoCapture(0)
     while True:
-        img = cv2.imread('jpg/i000qd-fn.jpg', cv2.IMREAD_COLOR)
+        # tracker = FaceTracker()
+        # img = cv2.imread('pyaam/data/muct/jpg/i000qd-fn.jpg', cv2.IMREAD_COLOR)
+        ret, img = cap.read()
         tracker.track(img)
         draw_muct_shape(img, tracker.points)
         cv2.imshow('face tracker', img)
@@ -39,7 +42,8 @@ def view_face_tracker():
 def view_face_detector(detector_fn):
     detector = FaceDetector.load(detector_fn)
 
-    file_list = glob.glob('jpg/*.jpg')
+    # file_list = glob.glob('jpg/*.jpg')
+    file_list = glob.glob('pyaam/data/muct/jpg/*.jpg')
 
     index = 0
 
