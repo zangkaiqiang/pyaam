@@ -14,7 +14,8 @@ from pyaam.combined import CombinedModel
 from pyaam.draw import Color, draw_string, draw_muct_shape, draw_texture
 from pyaam.utils import get_vertices
 from pyaam.texturemapper import TextureMapper
-
+import matplotlib.pyplot as plt
+import time
 
 
 def parse_args():
@@ -33,7 +34,6 @@ def parse_args():
     return parser.parse_args()
 
 
-
 def genvals():
     """generate trajectory of parameters"""
     vals = np.empty(200)
@@ -41,7 +41,6 @@ def genvals():
     vals[50:100] = (50 - np.arange(50)) / 50
     vals[100:] = -vals[:100]
     return vals
-
 
 
 def view_shape_model(shp_fn, scale, tranx, trany, width, height):
@@ -55,14 +54,13 @@ def view_shape_model(shp_fn, scale, tranx, trany, width, height):
                 p = smodel.get_params(scale, tranx, trany)
                 p[k] = p[0] * v * 3 * np.sqrt(smodel.variance[k])
                 img[:] = 0  # set to black
-                s = 'mode: %d, val: %f sd' % (k-3, v*3)
+                s = 'mode: %d, val: %f sd' % (k - 3, v * 3)
                 draw_string(img, s)
                 q = smodel.calc_shape(p)
                 draw_muct_shape(img, q)
                 cv2.imshow('shape model', img)
                 if cv2.waitKey(10) == 27:
                     sys.exit()
-
 
 
 def view_texture_model(shp_fn, txt_fn, scale, tranx, trany, width, height):
@@ -72,14 +70,14 @@ def view_texture_model(shp_fn, txt_fn, scale, tranx, trany, width, height):
     vals = genvals()
     # get reference shape
     ref = smodel.get_shape(scale, tranx, trany)
-    ref = ref.reshape((ref.size//2, 2))
+    ref = ref.reshape((ref.size // 2, 2))
     while True:
         for k in range(tmodel.num_modes()):
             for v in vals:
                 p = np.zeros(tmodel.num_modes())
                 p[k] = v * 3 * np.sqrt(tmodel.variance[k])
                 img[:] = 0
-                s = 'mode: %d, val: %f sd' % (k, v*3)
+                s = 'mode: %d, val: %f sd' % (k, v * 3)
                 draw_string(img, s)
                 t = tmodel.calc_texture(p)
                 draw_texture(img, t, ref)
@@ -88,10 +86,9 @@ def view_texture_model(shp_fn, txt_fn, scale, tranx, trany, width, height):
                     sys.exit()
 
 
-
 def view_combined_model(shp_fn, txt_fn, cmb_fn, scale, tranx, trany, width, height):
     img = np.empty((height, width, 3), dtype='uint8')
-    cv2.namedWindow('combined model')
+    # cv2.namedWindow('combined model')
     tm = TextureMapper(img.shape[1], img.shape[0])
     smodel = ShapeModel.load(shp_fn)
     tmodel = TextureModel.load(txt_fn)
@@ -99,7 +96,7 @@ def view_combined_model(shp_fn, txt_fn, cmb_fn, scale, tranx, trany, width, heig
     vals = genvals()
     params = smodel.get_params(scale, tranx, trany)
     ref = smodel.calc_shape(params)
-    ref = ref.reshape((ref.size//2, 2))
+    ref = ref.reshape((ref.size // 2, 2))
     verts = get_vertices(ref)
     while True:
         for k in range(cmodel.num_modes()):
@@ -116,13 +113,16 @@ def view_combined_model(shp_fn, txt_fn, cmb_fn, scale, tranx, trany, width, heig
                 draw_texture(img, t, ref)
                 warped = tm.warp_triangles(img, ref[verts], shp[verts])
 
-                s = 'mode: %d, val: %f sd' % (k, v*3)
+                s = 'mode: %d, val: %f sd' % (k, v * 3)
                 draw_string(warped, s)
-                cv2.imshow('combined model', warped)
+                print('#####')
+                # cv2.imshow('combined model', warped)
+                cv2.imwrite('output/%d.jpg'%(int(time.time()*1000000)), warped)
+                # plt.imshow(warped)
+                # plt.show()
 
-                if cv2.waitKey(10) == 27:
-                    sys.exit()
-
+                # if cv2.waitKey(10) == 27:
+                #     sys.exit()
 
 
 def view_patches_model(ptc_fn, shp_fn, width):
@@ -131,13 +131,13 @@ def view_patches_model(ptc_fn, shp_fn, width):
     ref = pmodel.ref_shape
     ref = np.column_stack((ref[::2], ref[1::2]))
     # compute scale factor
-    scale = width / ref[:,0].ptp()
-    height = int(scale * ref[:,1].ptp() + 0.5)
+    scale = width / ref[:, 0].ptp()
+    height = int(scale * ref[:, 1].ptp() + 0.5)
     # compute image width
     max_height = int(scale * pmodel.patches.shape[1])
     max_width = int(scale * pmodel.patches.shape[2])
     # create reference image
-    image_size = (height+4*max_height, width+4*max_width, 3)
+    image_size = (height + 4 * max_height, width + 4 * max_width, 3)
     image = np.empty(image_size, dtype='uint8')
     image[:] = 192
     patches = []
@@ -145,23 +145,23 @@ def view_patches_model(ptc_fn, shp_fn, width):
     for i in range(len(pmodel.patches)):
         im = np.zeros_like(pmodel.patches[i])
         cv2.normalize(pmodel.patches[i], im, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
-        im = cv2.resize(im, (int(scale*im.shape[0]), int(scale*im.shape[1])))
+        im = cv2.resize(im, (int(scale * im.shape[0]), int(scale * im.shape[1])))
         im = im.astype('uint8')
         patches.append(cv2.cvtColor(im, cv2.COLOR_GRAY2RGB))
-        h,w = patches[i].shape[:2]
-        points.append((int(scale*ref[i,1] + image_size[0]/2 - h/2),
-                       int(scale*ref[i,0] + image_size[1]/2 - w/2)))
-        y,x = points[i]
-        image[y:y+h,x:x+w,:] = patches[i]
+        h, w = patches[i].shape[:2]
+        points.append((int(scale * ref[i, 1] + image_size[0] / 2 - h / 2),
+                       int(scale * ref[i, 0] + image_size[1] / 2 - w / 2)))
+        y, x = points[i]
+        image[y:y + h, x:x + w, :] = patches[i]
     cv2.namedWindow('patches model')
     i = 0
     while True:
         img = image.copy()
-        y,x = points[i]
-        h,w = patches[i].shape[:2]
-        img[y:y+h,x:x+w,:] = patches[i]  # draw current patch on top
-        cv2.rectangle(img, (x,y), (x+w, y+h), Color.red, 2, cv2.LINE_AA)
-        text = 'patch %d' % (i+1)
+        y, x = points[i]
+        h, w = patches[i].shape[:2]
+        img[y:y + h, x:x + w, :] = patches[i]  # draw current patch on top
+        cv2.rectangle(img, (x, y), (x + w, y + h), Color.red, 2, cv2.LINE_AA)
+        text = 'patch %d' % (i + 1)
         draw_string(img, text)
         cv2.imshow('patches model', img)
         c = cv2.waitKey(0)
@@ -175,7 +175,6 @@ def view_patches_model(ptc_fn, shp_fn, width):
             i = 0
         elif i >= len(pmodel.patches):
             i = len(pmodel.patches) - 1
-
 
 
 if __name__ == '__main__':
